@@ -12,6 +12,7 @@ from gym_super_mario_bros.actions import COMPLEX_MOVEMENT
 from nes_py.wrappers import JoypadSpace
 
 # added custom reward
+# change exploration rate to 0.3
 from wrappers_custom_reward import *
 
 
@@ -119,7 +120,17 @@ def main(env, q, q_target, optimizer, device):
     batch_size = 256
 
     N = 50000
-    eps = 0.001
+    # eps = 0.001
+    # change exploration rate to 0.3
+    # eps = 0.3
+
+    # change exploration rate with decay rate
+    initial_epsilon = 0.1
+    minimum_epsilon = 0.01
+    decay_rate = 0.995
+    eps = initial_epsilon
+
+
     memory = replay_memory(N)
     update_interval = 50
     print_interval = 10
@@ -154,6 +165,9 @@ def main(env, q, q_target, optimizer, device):
                 copy_weights(q, q_target)
                 torch.save(q.state_dict(), "mario_q_cr.pth")
                 torch.save(q_target.state_dict(), "mario_q_target_cr.pth")
+
+        # Decay epsilon after each episode
+        eps = max(minimum_epsilon, eps * decay_rate)
 
         if k % print_interval == 0:
             print(

@@ -37,19 +37,19 @@ from gym.wrappers import TimeLimit
 #         except FileNotFoundError as e:
 #             print(f"Error creating Monitor: {e}")
 
-class Monitor:
-    def __init__(self, width, height, saved_path):
-        self.command = ["ffmpeg", "-y", "-f", "rawvideo", "-vcodec", "rawvideo", 
-                        "-s", "{}X{}".format(width, height), "-pix_fmt", "rgb24", 
-                        "-r", "60", "-i", "-", "-an", "-vcodec", "mpeg4", saved_path]
-        self.pipe = sp.Popen(self.command, stdin=sp.PIPE, stderr=sp.PIPE, bufsize=10**8)
+# class Monitor:
+#     def __init__(self, width, height, saved_path):
+#         self.command = ["ffmpeg", "-y", "-f", "rawvideo", "-vcodec", "rawvideo", 
+#                         "-s", "{}X{}".format(width, height), "-pix_fmt", "rgb24", 
+#                         "-r", "60", "-i", "-", "-an", "-vcodec", "mpeg4", saved_path]
+#         self.pipe = sp.Popen(self.command, stdin=sp.PIPE, stderr=sp.PIPE, bufsize=10**8)
 
-    def record(self, image_array):
-        if self.pipe:
-            try:
-                self.pipe.stdin.write(image_array.tobytes())
-            except BrokenPipeError as e:
-                print(f"Error writing to Monitor: {e}")
+#     def record(self, image_array):
+#         if self.pipe:
+#             try:
+#                 self.pipe.stdin.write(image_array.tobytes())
+#             except BrokenPipeError as e:
+#                 print(f"Error writing to Monitor: {e}")
 
 
 
@@ -80,16 +80,16 @@ def process_frame(frame):
 # added custom reward
 
 class CustomReward(Wrapper):
-    def __init__(self, env=None, monitor=None):
+    def __init__(self, env=None):
         super(CustomReward, self).__init__(env)
         self.prev_x_position = 0
         self.time_penalty = -0.01
-        self.monitor = monitor
+        # self.monitor = monitor
 
     def step(self, action):
         state, reward, done, info = self.env.step(action)
-        if self.monitor:
-            self.monitor.record(state)
+        # if self.monitor:
+        #     self.monitor.record(state)
         # Update the reward based on the logic here
         x_position = info.get("x_pos", 0)
         reward += (x_position - self.prev_x_position) * 0.1
@@ -491,12 +491,12 @@ def wrap_mario(env, width=256, height=240, saved_path=None):
     env = ScaledFloatFrame(env)
 
     # Initialize and add Monitor if saved_path is provided
-    if saved_path:
-        monitor = Monitor(width, height, saved_path)
-    else:
-        monitor = None
+    # if saved_path:
+    #     monitor = Monitor(width, height, saved_path)
+    # else:
+    #     monitor = None
 
-    env = CustomReward(env, monitor=monitor)
+    env = CustomReward(env)
     env = FrameStack(env, 4)
     return env
 
